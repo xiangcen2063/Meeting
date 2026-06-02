@@ -1,0 +1,156 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background: #eef3f1;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  background: #fbfcfb;
+  padding: 18px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.app-header {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 6px 2px 0;
+}
+
+.app-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.app-kicker {
+  display: block;
+  color: #2a7a61;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.app-header h1 {
+  color: #14211d;
+  font-size: 28px;
+  line-height: 1.14;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.app-header p {
+  color: #5f6f69;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.app-status {
+  flex: 0 0 auto;
+  min-width: 58px;
+  min-height: 28px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #e7f2ee;
+  color: #1f6f55;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.flow-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  list-style: none;
+}
+
+.flow-steps li {
+  position: relative;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #eef2f0;
+  color: #6c7b75;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.flow-steps li.active {
+  background: #16342b;
+  color: #ffffff;
+}
+
+.app-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+
+.reset-btn {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  background: #14211d;
+  color: #ffffff;
+  padding: 13px 18px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.reset-btn:hover {
+  background: #223831;
+}
+
+.app-footer {
+  padding: 4px 0 0;
+  text-align: center;
+}
+
+.app-footer p {
+  color: #99a39f;
+  font-size: 12px;
+}
+
+@media (min-width: 560px) {
+  .app {
+    padding: 24px;
+    align-items: center;
+  }
+
+  .app-container {
+    min-height: min(780px, calc(100vh - 48px));
+    border-radius: 22px;
+    box-shadow: 0 18px 56px rgba(31, 41, 55, 0.12);
+    padding: 24px 22px 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .app-container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .app-header h1 {
+    font-size: 25px;
+  }
+
+  .flow-steps li {
+    font-size: 11px;
+  }
+}

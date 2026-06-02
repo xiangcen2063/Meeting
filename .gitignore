@@ -1,0 +1,60 @@
+# macOS
+.DS_Store
+
+# Local editor / assistant metadata
+.cursor/
+.codex/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Python virtual environments
+venv/
+.venv/
+env/
+backend/venv/
+
+# Backend runtime files
+backend/Storage/
+backend/*.log
+*.log
+
+# Node / frontend dependencies
+node_modules/
+frontend/node_modules/
+
+# Frontend build output
+dist/
+frontend/dist/
+
+# Vite / frontend caches
+.vite/
+frontend/node_modules/.vite/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+
+docs/
+
+DXCREAD.md
