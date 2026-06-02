@@ -55,7 +55,9 @@ temp/
 *.swp
 *.swo
 
-docs/
+docs/*
+!docs/screenshots/
+!docs/screenshots/*.png
 
 backend/README.md
 frontend/README.md
