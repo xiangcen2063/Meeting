@@ -23,6 +23,21 @@ interface ParsedMeetingResponse {
   recommendation: string;
 }
 
+const analysisSteps = [
+  {
+    title: '识别位置',
+    description: '正在提取你和朋友的位置',
+  },
+  {
+    title: '计算路线',
+    description: '正在估算双方距离和可达性',
+  },
+  {
+    title: '生成推荐',
+    description: '正在整理适合会面的方案',
+  },
+];
+
 function cleanLine(line: string) {
   return line
     .replace(/^[\s🎯📍✨📊-]+/, '')
@@ -98,9 +113,22 @@ function getDisplayLocation(primary?: string, formatted?: string) {
   return `${raw}（${normalizedFormatted}）`;
 }
 
+function renderInlineMarkdown(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={`${part}-${index}`}>{part.slice(2, -2)}</strong>;
+    }
+
+    return part;
+  });
+}
+
 export function ResponseDisplay({ textResponse, audioUrl, slots, isLoading, error }: ResponseDisplayProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [analysisStep, setAnalysisStep] = useState(0);
 
   useEffect(() => {
     if (audioUrl && audioRef.current) {
@@ -115,6 +143,19 @@ export function ResponseDisplay({ textResponse, audioUrl, slots, isLoading, erro
         });
     }
   }, [audioUrl]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setAnalysisStep(0);
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setAnalysisStep((current) => Math.min(current + 1, analysisSteps.length - 1));
+    }, 900);
+
+    return () => window.clearInterval(timer);
+  }, [isLoading]);
 
   const handleAudioEnded = () => {
     setIsPlaying(false);
@@ -133,12 +174,27 @@ export function ResponseDisplay({ textResponse, audioUrl, slots, isLoading, erro
   };
 
   if (isLoading) {
+    const currentStep = analysisSteps[analysisStep];
+
     return (
       <div className="response-display loading">
         <span className="result-step">第 2 步</span>
-        <div className="loading-spinner"></div>
-        <h2>正在分析路线</h2>
-        <p>正在识别双方位置，并调用地图服务计算会面方案。</p>
+        <div className="analysis-copy" key={currentStep.title}>
+          <h2>{currentStep.title}</h2>
+          <p>{currentStep.description}</p>
+        </div>
+
+        <div className="analysis-progress" aria-label="分析进度">
+          {analysisSteps.map((step, index) => (
+            <div
+              className={`analysis-step ${index <= analysisStep ? 'active' : ''} ${index === analysisStep ? 'current' : ''}`}
+              key={step.title}
+            >
+              <span className="analysis-dot">{index + 1}</span>
+              <span>{step.title}</span>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -177,25 +233,34 @@ export function ResponseDisplay({ textResponse, audioUrl, slots, isLoading, erro
       
       {parsedResponse && (
         <div className="meeting-result">
-          <section className="result-section">
-            <div className="section-title">双方位置</div>
-            <div className="location-grid">
-              <div className="location-item">
-                <span className="location-label">你</span>
-                <strong>{location1 || '未识别'}</strong>
-              </div>
-              <div className="location-item">
-                <span className="location-label">朋友</span>
-                <strong>{location2 || '未识别'}</strong>
+          <section className="result-section result-animate section-route">
+            <div className="section-title">路线示意</div>
+            <div className="route-visual" aria-label="路线示意图">
+              <div className="route-track">
+                <div className="route-line"></div>
+                <div className="route-point route-start">
+                  <span className="route-marker"></span>
+                  <strong>{location1 || '未识别'}</strong>
+                  <small>你的位置</small>
+                </div>
+                <div className="route-point route-middle">
+                  <span className="route-marker recommended"></span>
+                  <strong>推荐点</strong>
+                </div>
+                <div className="route-point route-end">
+                  <span className="route-marker"></span>
+                  <strong>{location2 || '未识别'}</strong>
+                  <small>朋友位置</small>
+                </div>
               </div>
             </div>
           </section>
 
-          <section className="result-section">
+          <section className="result-section result-animate section-recommendation">
             <div className="section-title">推荐方案</div>
             <div className="recommendation-text">
               {parsedResponse.recommendation.split('\n').map((line, index) => (
-                <p key={`${line}-${index}`}>{line}</p>
+                <p key={`${line}-${index}`}>{renderInlineMarkdown(line)}</p>
               ))}
             </div>
           </section>
@@ -203,7 +268,7 @@ export function ResponseDisplay({ textResponse, audioUrl, slots, isLoading, erro
       )}
 
       {audioUrl && (
-        <div className="audio-response">
+        <div className="audio-response result-animate section-audio">
           <div className="audio-controls">
             <button 
               className={`play-button ${isPlaying ? 'playing' : ''}`}

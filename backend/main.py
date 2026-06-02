@@ -103,11 +103,29 @@ def generate_request_id() -> str:
     return f"req_{timestamp}_{unique_id}"
 
 
+def get_request_storage_dir(request_id: str) -> Path:
+    """按日期和请求 ID 创建本次请求的存储目录。"""
+    parts = request_id.split("_")
+    date_part = parts[1] if len(parts) >= 3 else datetime.now().strftime("%Y%m%d")
+    request_dir = config.STORAGE_DIR / date_part / request_id
+    request_dir.mkdir(parents=True, exist_ok=True)
+    return request_dir
+
+
+def get_storage_display_path(path: Path) -> str:
+    """返回便于日志和前端文本展示的 Storage 相对路径。"""
+    try:
+        return str(path.relative_to(config.STORAGE_DIR))
+    except ValueError:
+        return str(path)
+
+
 async def process_location_text(
     recognized_text: str,
     request_id: str,
     source_label: str,
-    asr_log_name: str | None = None
+    request_storage_dir: Path,
+    asr_log_path: Path | None = None
 ) -> MeetingResponse:
     """根据一段位置描述文本完成推荐流程。"""
     # ========== 步骤 3: Deepseek 槽位提取 ==========
@@ -120,8 +138,8 @@ async def process_location_text(
     logger.step(3, 6, "槽位提取 (Deepseek)")
     slot_result = deepseek_service.extract_locations(recognized_text)
 
-    slot_json_path = save_slot_result(slot_result, request_id, config.STORAGE_DIR)
-    logger.info("槽位", f"结果已保存: {slot_json_path.name}")
+    slot_json_path = save_slot_result(slot_result, request_id, request_storage_dir)
+    logger.info("槽位", f"结果已保存: {get_storage_display_path(slot_json_path)}")
 
     if not slot_result.success:
         return MeetingResponse(
@@ -151,8 +169,8 @@ async def process_location_text(
         request_id=request_id
     )
 
-    mcp_json_path = amap_mcp_client.save_mcp_log(config.STORAGE_DIR)
-    logger.info("MCP", f"调用日志已保存: {mcp_json_path.name}")
+    mcp_json_path = amap_mcp_client.save_mcp_log(request_storage_dir)
+    logger.info("MCP", f"调用日志已保存: {get_storage_display_path(mcp_json_path)}")
 
     if not meeting_result.success:
         return MeetingResponse(
@@ -164,7 +182,7 @@ async def process_location_text(
     logger.step(5, 6, "生成自然语言回复 (Deepseek)")
 
     recommended_places = []
-    mcp_log_path = config.STORAGE_DIR / f"{request_id}_mcp.json"
+    mcp_log_path = request_storage_dir / f"{request_id}_mcp.json"
     if mcp_log_path.exists():
         import json
         with open(mcp_log_path, 'r', encoding='utf-8') as f:
@@ -194,8 +212,8 @@ async def process_location_text(
             language_type="Chinese"
         )
 
-        tts_json_path = save_tts_result(tts_result, request_id, config.STORAGE_DIR)
-        logger.info("TTS", f"结果已保存: {tts_json_path.name}")
+        tts_json_path = save_tts_result(tts_result, request_id, request_storage_dir)
+        logger.info("TTS", f"结果已保存: {get_storage_display_path(tts_json_path)}")
 
         if not tts_result.success:
             logger.warning("TTS", f"语音合成失败: {tts_result.error}")
@@ -214,11 +232,12 @@ async def process_location_text(
 {natural_response}
 
 📊 详细信息已保存到 Storage 目录
+  - 请求目录: {get_storage_display_path(request_storage_dir)}
   - 输入来源: {source_label}
-  - 语音识别: {asr_log_name or 'N/A'}
-  - 槽位提取: {slot_json_path.name}
-  - MCP调用: {mcp_json_path.name}
-  - TTS合成: {tts_json_path.name if tts_json_path else 'N/A'}
+  - 语音识别: {get_storage_display_path(asr_log_path) if asr_log_path else 'N/A'}
+  - 槽位提取: {get_storage_display_path(slot_json_path)}
+  - MCP调用: {get_storage_display_path(mcp_json_path)}
+  - TTS合成: {get_storage_display_path(tts_json_path) if tts_json_path else 'N/A'}
 """
 
     logger.success("完成", "会面地点推荐成功")
@@ -258,6 +277,7 @@ async def recommend_meeting_point(audio: UploadFile = File(...)):
     6. 调用百炼 TTS 服务生成语音
     """
     request_id = generate_request_id()
+    request_storage_dir = get_request_storage_dir(request_id)
     
     logger.section(f"新请求: {request_id}")
     
@@ -268,14 +288,14 @@ async def recommend_meeting_point(audio: UploadFile = File(...)):
         
         logger.step(1, 4, "保存音频文件")
         filename = generate_filename(audio.filename)
-        file_path = config.STORAGE_DIR / filename
+        file_path = request_storage_dir / filename
         
         content = await audio.read()
         async with aiofiles.open(file_path, "wb") as f:
             await f.write(content)
         
         file_size_kb = len(content) / 1024
-        logger.success("音频", f"已保存: {filename} ({file_size_kb:.1f} KB)")
+        logger.success("音频", f"已保存: {get_storage_display_path(file_path)} ({file_size_kb:.1f} KB)")
         
         # ========== 步骤 2: ASR 语音识别 ==========
         if asr_service is None:
@@ -287,8 +307,8 @@ async def recommend_meeting_point(audio: UploadFile = File(...)):
         logger.step(2, 4, "语音识别 (ASR)")
         asr_result = asr_service.recognize_from_file(file_path, language="zh")
         
-        asr_json_path = save_asr_result(asr_result, filename, config.STORAGE_DIR)
-        logger.info("ASR", f"结果已保存: {asr_json_path.name}")
+        asr_json_path = save_asr_result(asr_result, filename, request_storage_dir)
+        logger.info("ASR", f"结果已保存: {get_storage_display_path(asr_json_path)}")
         
         if not asr_result.success:
             return MeetingResponse(
@@ -303,7 +323,8 @@ async def recommend_meeting_point(audio: UploadFile = File(...)):
             recognized_text=recognized_text,
             request_id=request_id,
             source_label="语音",
-            asr_log_name=asr_json_path.name
+            request_storage_dir=request_storage_dir,
+            asr_log_path=asr_json_path
         )
         
     except HTTPException:
@@ -325,6 +346,7 @@ async def recommend_meeting_point_by_text(payload: TextMeetingRequest):
     这个接口用于不方便访问麦克风的环境，例如 Codex 内置浏览器。
     """
     request_id = generate_request_id()
+    request_storage_dir = get_request_storage_dir(request_id)
     logger.section(f"新文字请求: {request_id}")
 
     try:
@@ -342,7 +364,8 @@ async def recommend_meeting_point_by_text(payload: TextMeetingRequest):
             recognized_text=text,
             request_id=request_id,
             source_label="文字",
-            asr_log_name=None
+            request_storage_dir=request_storage_dir,
+            asr_log_path=None
         )
 
     except Exception as e:
@@ -375,7 +398,8 @@ if __name__ == "__main__":
     clear_proxy_env_vars()
     
     # 设置日志文件
-    log_file = config.STORAGE_DIR / f"service_{datetime.now().strftime('%Y%m%d')}.log"
+    today = datetime.now().strftime("%Y%m%d")
+    log_file = config.STORAGE_DIR / today / f"service_{today}.log"
     logger.set_log_file(log_file)
     
     uvicorn.run(

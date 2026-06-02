@@ -104,8 +104,7 @@
   color: #8b9691;
 }
 
-.text-submit-btn,
-.secondary-switch {
+.text-submit-btn {
   min-height: 48px;
   border: none;
   border-radius: 8px;
@@ -128,26 +127,27 @@
   cursor: not-allowed;
 }
 
-.secondary-switch {
-  background: #eef2f0;
-  color: #14211d;
-}
-
-.error-message {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px;
+.mic-notice {
+  padding: 11px 12px;
+  border: 1px solid #d7e8df;
   border-radius: 8px;
-  background: #fff4f2;
-  color: #b42318;
-  font-size: 14px;
+  background: #f1f8f4;
+  color: #286b55;
+  font-size: 13px;
+  font-weight: 700;
   line-height: 1.45;
+  animation: noticeIn 0.22s ease-out both;
 }
 
-.error-message strong {
-  color: #8f1f15;
-  font-size: 15px;
+@keyframes noticeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .recorder-controls {

@@ -92,7 +92,7 @@ python main.py
 |--------|------|--------|
 | SERVER_HOST | 服务监听地址 | 0.0.0.0 |
 | SERVER_PORT | 服务端口 | 8013 |
-| STORAGE_DIR | 音频存储目录 | Storage |
+| STORAGE_DIR | 运行文件与调用日志存储目录 | Storage |
 | DASHSCOPE_API_KEY | 阿里云百炼 API Key | - |
 | DEEPSEEK_API_KEY | Deepseek API Key | - |
 | AMAP_API_KEY | 高德地图 API Key | - |
@@ -113,15 +113,18 @@ python main.py
 
 ### Storage 目录结构
 
-每次请求会在 `Storage/` 目录下生成多个日志文件：
+每次请求会按日期和请求 ID 整理到独立文件夹，便于按时间查看：
 
 ```
 Storage/
-├── audio_20260517_143015_abc123.webm      # 原始音频
-├── audio_20260517_143015_abc123_asr.json  # ASR识别结果
-├── req_20260517_143015_abc123_slot.json   # 槽位提取结果
-├── req_20260517_143015_abc123_mcp.json    # MCP调用日志
-└── service_20260517.log                    # 服务日志
+└── 20260517/
+    ├── service_20260517.log                         # 当天服务日志
+    └── req_20260517_143015_abc123/
+        ├── audio_20260517_143015_def45678.webm      # 原始音频
+        ├── audio_20260517_143015_def45678_asr.json  # ASR识别结果
+        ├── req_20260517_143015_abc123_slot.json     # 槽位提取结果
+        ├── req_20260517_143015_abc123_mcp.json      # MCP调用日志
+        └── req_20260517_143015_abc123_tts.json      # TTS合成结果
 ```
 
 ### MCP 调用日志格式

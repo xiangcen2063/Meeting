@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import './VoiceRecorder.css';
 
@@ -20,6 +20,12 @@ export function VoiceRecorder({ onRecordingComplete, onTextSubmit, disabled }: V
     stopRecording,
     reset,
   } = useAudioRecorder();
+
+  useEffect(() => {
+    if (error) {
+      setInputMode('text');
+    }
+  }, [error]);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -78,6 +84,12 @@ export function VoiceRecorder({ onRecordingComplete, onTextSubmit, disabled }: V
 
       {inputMode === 'text' && (
         <div className="text-entry">
+          {error && (
+            <div className="mic-notice" role="status">
+              当前无法访问麦克风，已为你切换到文字输入
+            </div>
+          )}
+
           <label htmlFor="locationText">位置描述</label>
           <textarea
             id="locationText"
@@ -99,13 +111,6 @@ export function VoiceRecorder({ onRecordingComplete, onTextSubmit, disabled }: V
 
       {inputMode === 'voice' && (
         <div className="voice-entry">
-          {error && (
-            <div className="error-message">
-              <strong>麦克风暂不可用</strong>
-              <span>{error}。可切换为文字输入继续查询。</span>
-            </div>
-          )}
-
           <div className="recorder-controls">
             {status === 'idle' && (
               <button
@@ -151,16 +156,6 @@ export function VoiceRecorder({ onRecordingComplete, onTextSubmit, disabled }: V
             {status === 'recording' && '正在录音，请描述你和朋友的当前位置。'}
             {status === 'stopped' && '录音完成，可以预览、重录或发送。'}
           </p>
-
-          {error && (
-            <button
-              className="secondary-switch"
-              type="button"
-              onClick={() => setInputMode('text')}
-            >
-              改用文字输入
-            </button>
-          )}
         </div>
       )}
     </section>
