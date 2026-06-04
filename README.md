@@ -120,7 +120,7 @@ backend/Storage/
         └── req_*_tts.json
 ```
 
-`Storage/` 是运行时目录，不需要提交到 GitHub。
+`Storage/` 运行时生成，已被 .gitignore 忽略
 
 ## Getting Started
 
@@ -261,13 +261,6 @@ Response:
 ### `POST /api/meeting/recommend`
 
 Upload an audio file with form field `audio`.
-
-## Security Notes
-
-- Do not commit `backend/.env`.
-- Do not commit API keys, tokens, local absolute paths, or personal logs.
-- Do not commit `backend/Storage/`, `backend/venv/`, `frontend/node_modules/`, or `frontend/dist/`.
-- Use `.env.example` to document required configuration.
 
 ## Troubleshooting
 
