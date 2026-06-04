@@ -9,7 +9,7 @@
 ### 1. 输入双方位置
 ### 2. 分析路线
 ### 3. 查看推荐方案
-![图片](docs/screenshots/Group 123202.png)
+![图片](docs/screenshots/Group_123202.png)
 
 ## Features
 
