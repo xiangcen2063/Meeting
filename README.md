@@ -7,16 +7,9 @@
 ## UI Preview
 
 ### 1. 输入双方位置
-
-![输入双方位置](docs/screenshots/input.png)
-
 ### 2. 分析路线
-
-![分析路线](docs/screenshots/analysis.png)
-
 ### 3. 查看推荐方案
-
-![查看推荐方案](docs/screenshots/result.png)
+![图片](docs/screenshots/Group 123202.png)
 
 ## Features
 
